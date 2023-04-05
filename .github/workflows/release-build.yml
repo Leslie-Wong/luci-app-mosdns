@@ -8,7 +8,9 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
-
+env:
+  TZ: Asia/Shanghai
+  
 jobs:
   build:
     name: Build ${{ matrix.arch }}
@@ -50,6 +52,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 初始化编译环境
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo timedatectl set-timezone "$TZ
+          echo "FILE_DATE=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
+        
       - name: Get v2ray-geodata
         run: |
           git clone https://github.com/sbwml/v2ray-geodata
@@ -76,7 +85,29 @@ jobs:
         with:
           name: ${{ matrix.arch }}
           path: bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
+          
+      - name: 生成release标签
+        id: tag
+        if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+        run: |
+          echo "release_tag=${{ env.FILE_DATE }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
+          touch release.txt
+          echo "🎉🎉🎉🎉🎉🎉🎉🎉" >> release.txt
+          echo "由衷感谢所有为openwrt无私奉献的大佬们" >> release.txt
+          echo "📥 固件下载" >> release.txt
+          echo "status=success" >> $GITHUB_OUTPUT
 
+      - name: 发布至release
+        uses: softprops/action-gh-release@v1
+        if: steps.tag.outputs.status == 'success' && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: "bin/packages/${{ matrix.arch }}/packages_ci/*.ipk"
+          name: ${{ env.FILE_DATE }}-${{ matrix.arch }}
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          body_path: release.txt
+        
       - name: Upload packages
         uses: ncipollo/release-action@v1
         with:
