@@ -86,7 +86,6 @@ jobs:
           
       - name: 生成release标签
         id: tag
-        if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
           echo "release_tag=${{ env.FILE_DATE }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
           touch release.txt
@@ -97,7 +96,6 @@ jobs:
 
       - name: 发布至release
         uses: softprops/action-gh-release@v1
-        if: steps.tag.outputs.status == 'success' && !cancelled()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -106,10 +104,10 @@ jobs:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
         
-      - name: Upload packages
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.workflow_token }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "bin/packages/${{ matrix.arch }}/packages_ci/*.ipk"
+#       - name: Upload packages
+#         uses: ncipollo/release-action@v1
+#         with:
+#           token: ${{ secrets.workflow_token }}
+#           allowUpdates: true
+#           replacesArtifacts: true
+#           artifacts: "bin/packages/${{ matrix.arch }}/packages_ci/*.ipk"
