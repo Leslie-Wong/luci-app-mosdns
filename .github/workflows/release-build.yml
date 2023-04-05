@@ -53,6 +53,8 @@ jobs:
       - name: Get v2ray-geodata
         run: |
           git clone https://github.com/sbwml/v2ray-geodata
+          git clone https://github.com/Leslie-Wong/luci-app-passwall
+          git clone https://github.com/kenzok8/small
 
       - name: SSH链接管理
         uses: P3TERX/ssh2actions@v1.0.0
@@ -66,7 +68,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}-openwrt-22.03
           FEEDNAME: packages_ci
-          PACKAGES: luci-app-mosdns
+          PACKAGES: luci-app-passwall
           NO_REFRESH_CHECK: true
 
       - name: Upload artifacts
